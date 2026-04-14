@@ -76,6 +76,12 @@ require_once BASE_PATH . '/views/layouts/sidebar.php';
                                class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                                placeholder="Nama debitur, mitra, dll">
                     </div>
+
+                    <div>
+                        <label for="tanggal_transaksi" class="mb-1.5 block text-sm font-medium text-slate-700">Tanggal Aktivitas (opsional)</label>
+                        <input type="date" name="tanggal_transaksi" id="tanggal_transaksi" value="<?= htmlspecialchars($document['tanggal_transaksi'] ?? '') ?>"
+                               class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+                    </div>
                     
                     <div class="mt-4 rounded-xl bg-slate-50 border border-slate-100 p-4">
                         <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Informasi File Asli</h4>

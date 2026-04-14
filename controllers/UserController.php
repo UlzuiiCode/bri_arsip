@@ -102,7 +102,7 @@ class UserController
         ];
 
         $this->userModel->update($id, $data);
-        $this->logModel->log($_SESSION['user_id'], 'UPDATE_USER', "Memperbarui pengguna ID: $id");
+        $this->logModel->log($_SESSION['user_id'], 'UPDATE_USER', "Memperbarui informasi pengguna '{$data['nama']}'");
 
         $_SESSION['flash_success'] = 'Pengguna berhasil diperbarui!';
         header('Location: ' . BASE_URL . '/index.php?page=users');
@@ -117,8 +117,10 @@ class UserController
             header('Location: ' . BASE_URL . '/index.php?page=users');
             exit;
         }
+        $user = $this->userModel->findById($id);
+        $userName = $user ? $user['nama'] : 'Pengguna';
         $this->userModel->delete($id);
-        $this->logModel->log($_SESSION['user_id'], 'DELETE_USER', "Menghapus pengguna ID: $id");
+        $this->logModel->log($_SESSION['user_id'], 'DELETE_USER', "Menghapus akun pengguna '$userName'");
         $_SESSION['flash_success'] = 'Pengguna berhasil dihapus.';
         header('Location: ' . BASE_URL . '/index.php?page=users');
         exit;

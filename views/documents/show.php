@@ -65,6 +65,12 @@ require_once BASE_PATH . '/views/layouts/sidebar.php';
                         <p class="mt-1 font-medium text-slate-900"><?= htmlspecialchars($document['pihak_terkait']) ?></p>
                     </div>
                     <?php endif; ?>
+                    <?php if ($document['tanggal_transaksi']): ?>
+                    <div>
+                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Tanggal Aktivitas</p>
+                        <p class="mt-1 font-medium text-slate-900"><?= date('d F Y', strtotime($document['tanggal_transaksi'])) ?></p>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
             

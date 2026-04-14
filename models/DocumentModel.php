@@ -30,7 +30,7 @@ class DocumentModel
                 LEFT JOIN categories c ON d.category_id = c.id
                 LEFT JOIN users u ON d.uploaded_by = u.id
                 WHERE d.deleted_at IS NULL
-                ORDER BY d.created_at DESC";
+                ORDER BY COALESCE(d.tanggal_transaksi, d.created_at) DESC";
 
         if ($limit > 0) {
             $sql .= " LIMIT :limit OFFSET :offset";
@@ -66,7 +66,7 @@ class DocumentModel
             $params[':category_id'] = $categoryId;
         }
 
-        $sql .= " ORDER BY d.created_at DESC LIMIT :limit OFFSET :offset";
+        $sql .= " ORDER BY COALESCE(d.tanggal_transaksi, d.created_at) DESC LIMIT :limit OFFSET :offset";
 
         $stmt = $this->db->prepare($sql);
         foreach ($params as $key => $val) {
@@ -134,7 +134,7 @@ class DocumentModel
              LEFT JOIN users u ON d.uploaded_by = u.id
              WHERE d.deleted_at IS NULL
                AND (d.judul LIKE :keyword OR d.deskripsi LIKE :keyword OR c.nama LIKE :keyword)
-             ORDER BY d.created_at DESC"
+             ORDER BY COALESCE(d.tanggal_transaksi, d.created_at) DESC"
         );
         $keyword = '%' . $keyword . '%';
         $stmt->bindValue(':keyword', $keyword, PDO::PARAM_STR);
@@ -153,7 +153,7 @@ class DocumentModel
              LEFT JOIN categories c ON d.category_id = c.id
              LEFT JOIN users u ON d.uploaded_by = u.id
              WHERE d.deleted_at IS NULL AND d.category_id = :category_id
-             ORDER BY d.created_at DESC"
+             ORDER BY COALESCE(d.tanggal_transaksi, d.created_at) DESC"
         );
         $stmt->bindValue(':category_id', $categoryId, PDO::PARAM_INT);
         $stmt->execute();
@@ -192,7 +192,7 @@ class DocumentModel
              LEFT JOIN categories c ON d.category_id = c.id
              LEFT JOIN users u ON d.uploaded_by = u.id
              WHERE d.deleted_at IS NULL
-             ORDER BY d.created_at DESC LIMIT :limit"
+             ORDER BY COALESCE(d.tanggal_transaksi, d.created_at) DESC LIMIT :limit"
         );
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->execute();
@@ -209,8 +209,8 @@ class DocumentModel
     public function create(array $data): int
     {
         $stmt = $this->db->prepare(
-            "INSERT INTO documents (judul, deskripsi, file_path, file_name, file_size, file_type, category_id, uploaded_by, nominal, pihak_terkait)
-             VALUES (:judul, :deskripsi, :file_path, :file_name, :file_size, :file_type, :category_id, :uploaded_by, :nominal, :pihak_terkait)"
+            "INSERT INTO documents (judul, deskripsi, file_path, file_name, file_size, file_type, category_id, uploaded_by, nominal, pihak_terkait, tanggal_transaksi)
+             VALUES (:judul, :deskripsi, :file_path, :file_name, :file_size, :file_type, :category_id, :uploaded_by, :nominal, :pihak_terkait, :tanggal_transaksi)"
         );
         $stmt->execute([
             ':judul'        => $data['judul'],
@@ -223,6 +223,7 @@ class DocumentModel
             ':uploaded_by'  => $data['uploaded_by'],
             ':nominal'      => $data['nominal'] ?? null,
             ':pihak_terkait' => $data['pihak_terkait'] ?? null,
+            ':tanggal_transaksi' => $data['tanggal_transaksi'] ?? null,
         ]);
         return (int) $this->db->lastInsertId();
     }
@@ -239,6 +240,7 @@ class DocumentModel
                 category_id = :category_id,
                 nominal = :nominal,
                 pihak_terkait = :pihak_terkait,
+                tanggal_transaksi = :tanggal_transaksi,
                 updated_at = NOW()
              WHERE id = :id"
         );
@@ -248,6 +250,7 @@ class DocumentModel
             ':category_id'   => $data['category_id'],
             ':nominal'       => $data['nominal'] ?? null,
             ':pihak_terkait' => $data['pihak_terkait'] ?? null,
+            ':tanggal_transaksi' => $data['tanggal_transaksi'] ?? null,
             ':id'            => $id,
         ]);
     }
@@ -359,7 +362,7 @@ class DocumentModel
             $params[':category_id'] = $categoryId;
         }
 
-        $sql .= " ORDER BY d.created_at DESC";
+        $sql .= " ORDER BY COALESCE(d.tanggal_transaksi, d.created_at) DESC";
 
         $stmt = $this->db->prepare($sql);
         foreach ($params as $key => $val) {

@@ -71,6 +71,7 @@ class DocumentController
         $categoryId  = (int) filter_input(INPUT_POST, 'category_id', FILTER_SANITIZE_NUMBER_INT);
         $nominal     = filter_input(INPUT_POST, 'nominal', FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
         $pihakTerkait = trim(filter_input(INPUT_POST, 'pihak_terkait', FILTER_SANITIZE_SPECIAL_CHARS));
+        $tanggalTransaksi = trim($_POST['tanggal_transaksi'] ?? '');
 
         // Validasi
         if (empty($judul) || $categoryId <= 0) {
@@ -98,12 +99,13 @@ class DocumentController
             'uploaded_by'  => $_SESSION['user_id'],
             'nominal'      => $nominal ?: null,
             'pihak_terkait' => $pihakTerkait ?: null,
+            'tanggal_transaksi' => $tanggalTransaksi ?: null,
         ]);
 
         $this->logModel->log(
             $_SESSION['user_id'],
             'UPLOAD_DOCUMENT',
-            "Mengunggah dokumen ID: $docId, Judul: $judul"
+            "Mengunggah dokumen '$judul'"
         );
 
         $_SESSION['flash_success'] = 'Dokumen berhasil diunggah!';
@@ -162,6 +164,7 @@ class DocumentController
         $categoryId  = (int) filter_input(INPUT_POST, 'category_id', FILTER_SANITIZE_NUMBER_INT);
         $nominal     = filter_input(INPUT_POST, 'nominal', FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
         $pihakTerkait = trim(filter_input(INPUT_POST, 'pihak_terkait', FILTER_SANITIZE_SPECIAL_CHARS));
+        $tanggalTransaksi = trim($_POST['tanggal_transaksi'] ?? '');
 
         $this->docModel->update($id, [
             'judul'        => $judul,
@@ -169,12 +172,13 @@ class DocumentController
             'category_id'  => $categoryId,
             'nominal'      => $nominal ?: null,
             'pihak_terkait' => $pihakTerkait ?: null,
+            'tanggal_transaksi' => $tanggalTransaksi ?: null,
         ]);
 
         $this->logModel->log(
             $_SESSION['user_id'],
             'UPDATE_DOCUMENT',
-            "Memperbarui dokumen ID: $id, Judul: $judul"
+            "Memperbarui dokumen '$judul'"
         );
 
         $_SESSION['flash_success'] = 'Dokumen berhasil diperbarui!';
@@ -193,7 +197,7 @@ class DocumentController
             $this->logModel->log(
                 $_SESSION['user_id'],
                 'DELETE_DOCUMENT',
-                "Memindahkan dokumen ke sampah — ID: $id, Judul: {$document['judul']}"
+                "Memindahkan dokumen '{$document['judul']}' ke sampah"
             );
         }
         $_SESSION['flash_success'] = 'Dokumen dipindahkan ke tempat sampah.';
@@ -219,7 +223,7 @@ class DocumentController
         $this->logModel->log(
             $_SESSION['user_id'],
             'DOWNLOAD_DOCUMENT',
-            "Mengunduh dokumen ID: $id, Judul: {$document['judul']}"
+            "Mengunduh dokumen '{$document['judul']}'"
         );
 
         header('Content-Type: application/octet-stream');
@@ -254,7 +258,7 @@ class DocumentController
             $this->logModel->log(
                 $_SESSION['user_id'],
                 'RESTORE_DOCUMENT',
-                "Memulihkan dokumen dari sampah — ID: $id, Judul: {$document['judul']}"
+                "Memulihkan dokumen '{$document['judul']}' dari sampah"
             );
         }
         $_SESSION['flash_success'] = 'Dokumen berhasil dipulihkan!';
@@ -278,7 +282,7 @@ class DocumentController
             $this->logModel->log(
                 $_SESSION['user_id'],
                 'FORCE_DELETE_DOCUMENT',
-                "Menghapus permanen dokumen ID: $id, Judul: {$document['judul']}"
+                "Menghapus permanen dokumen '{$document['judul']}'"
             );
         }
         $_SESSION['flash_success'] = 'Dokumen dihapus secara permanen.';
@@ -287,8 +291,35 @@ class DocumentController
     }
 
     // ===================================================
-    // BULK ACTIONS
+    // BULK ACTIONS & EMPTY TRASH
     // ===================================================
+
+    /**
+     * Kosongkan tempat sampah permanen.
+     */
+    public function emptyTrash(): void
+    {
+        $trashed = $this->docModel->getTrashed();
+        if (!empty($trashed)) {
+            $count = 0;
+            foreach ($trashed as $doc) {
+                $filePath = BASE_PATH . '/public/uploads/' . $doc['file_path'];
+                if (file_exists($filePath)) {
+                    unlink($filePath);
+                }
+                $this->docModel->forceDelete((int)$doc['id']);
+                $count++;
+            }
+            $this->logModel->log(
+                $_SESSION['user_id'],
+                'EMPTY_TRASH',
+                "Mengosongkan tempat sampah secara permanen ($count dokumen)"
+            );
+        }
+        $_SESSION['flash_success'] = 'Tempat sampah berhasil dikosongkan.';
+        header('Location: ' . BASE_URL . '/index.php?page=documents.trash');
+        exit;
+    }
 
     /**
      * Bulk soft delete.
@@ -319,7 +350,7 @@ class DocumentController
         $this->logModel->log(
             $_SESSION['user_id'],
             'BULK_DELETE_DOCUMENT',
-            "Memindahkan $count dokumen ke sampah (IDs: " . implode(', ', $ids) . ")"
+            "Memindahkan $count dokumen sekaligus ke tempat sampah"
         );
 
         $_SESSION['flash_success'] = "$count dokumen dipindahkan ke tempat sampah.";
@@ -431,7 +462,7 @@ class DocumentController
         fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
         // Header
-        fputcsv($output, ['No', 'Judul', 'Kategori', 'Deskripsi', 'Nominal (Rp)', 'Pihak Terkait', 'Pengunggah', 'Tanggal Upload', 'Nama File', 'Ukuran (KB)']);
+        fputcsv($output, ['No', 'Judul', 'Kategori', 'Deskripsi', 'Nominal (Rp)', 'Pihak Terkait', 'Tanggal Aktivitas', 'Pengunggah', 'Tanggal Upload', 'Nama File', 'Ukuran (KB)']);
 
         foreach ($documents as $i => $doc) {
             fputcsv($output, [
@@ -441,6 +472,7 @@ class DocumentController
                 $doc['deskripsi'] ?? '',
                 $doc['nominal'] ? number_format($doc['nominal'], 0, ',', '.') : '',
                 $doc['pihak_terkait'] ?? '',
+                $doc['tanggal_transaksi'] ? date('d/m/Y', strtotime($doc['tanggal_transaksi'])) : '',
                 $doc['nama_uploader'] ?? '-',
                 date('d/m/Y H:i', strtotime($doc['created_at'])),
                 $doc['file_name'],

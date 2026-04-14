@@ -147,7 +147,29 @@ require_once BASE_PATH . '/views/layouts/sidebar.php';
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50">
-                    <?php foreach ($documents as $i => $doc): ?>
+                    <?php 
+                    $currentMonthYear = '';
+                    $strBulan = [
+                        'January' => 'Januari', 'February' => 'Februari', 'March' => 'Maret',
+                        'April' => 'April', 'May' => 'Mei', 'June' => 'Juni',
+                        'July' => 'Juli', 'August' => 'Agustus', 'September' => 'September',
+                        'October' => 'Oktober', 'November' => 'November', 'December' => 'Desember'
+                    ];
+                    foreach ($documents as $i => $doc): 
+                        $docDate = $doc['tanggal_transaksi'] ?: $doc['created_at'];
+                        $enMonth = date('F', strtotime($docDate));
+                        $year = date('Y', strtotime($docDate));
+                        $idMonthYear = ($strBulan[$enMonth] ?? $enMonth) . ' ' . $year;
+
+                        if ($currentMonthYear !== $idMonthYear):
+                            $currentMonthYear = $idMonthYear;
+                    ?>
+                    <tr class="bg-slate-100/60 border-y border-slate-200">
+                        <td colspan="6" class="px-4 py-2.5 text-xs font-bold text-slate-700 uppercase tracking-wider">
+                            <?= htmlspecialchars($currentMonthYear) ?>
+                        </td>
+                    </tr>
+                    <?php endif; ?>
                     <tr class="hover:bg-slate-50/80 transition-colors" data-doc-id="<?= $doc['id'] ?>">
                         <td class="px-4 py-4">
                             <input type="checkbox" class="doc-checkbox h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer" value="<?= $doc['id'] ?>">
@@ -166,10 +188,10 @@ require_once BASE_PATH . '/views/layouts/sidebar.php';
                             </span>
                         </td>
                         <td class="px-4 py-4 text-slate-500 hidden lg:table-cell">
-                            <?= htmlspecialchars($doc['nama_uploader'] ?? '-') ?>
+                            <div class="text-sm font-medium text-slate-700"><?= htmlspecialchars($doc['nama_uploader'] ?? '-') ?></div>
                         </td>
                         <td class="px-4 py-4 text-slate-500 hidden lg:table-cell">
-                            <?= date('d M Y', strtotime($doc['created_at'])) ?>
+                            <?= date('d M Y', strtotime($docDate)) ?>
                         </td>
                         <td class="px-4 py-4 text-right">
                             <div class="flex items-center justify-end gap-1.5">

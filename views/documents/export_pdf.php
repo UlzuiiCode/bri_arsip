@@ -200,8 +200,9 @@
                 <th>Deskripsi</th>
                 <th class="text-right">Nominal (Rp)</th>
                 <th>Pihak Terkait</th>
+                <th>Tgl Aktivitas</th>
                 <th>Pengunggah</th>
-                <th>Tanggal</th>
+                <th>Tgl Upload</th>
             </tr>
         </thead>
         <tbody>
@@ -216,6 +217,7 @@
                 <td style="max-width:180px"><?= htmlspecialchars(mb_strimwidth($doc['deskripsi'] ?? '', 0, 80, '...')) ?></td>
                 <td class="text-right nominal"><?= $doc['nominal'] ? number_format((float)$doc['nominal'], 0, ',', '.') : '-' ?></td>
                 <td><?= htmlspecialchars($doc['pihak_terkait'] ?? '-') ?></td>
+                <td><?= $doc['tanggal_transaksi'] ? date('d/m/Y', strtotime($doc['tanggal_transaksi'])) : '-' ?></td>
                 <td><?= htmlspecialchars($doc['nama_uploader'] ?? '-') ?></td>
                 <td><?= date('d/m/Y', strtotime($doc['created_at'])) ?></td>
             </tr>

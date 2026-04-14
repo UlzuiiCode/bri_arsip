@@ -135,6 +135,11 @@ switch ($page) {
         (new DocumentController())->forceDelete($id);
         break;
 
+    case 'documents.empty_trash':
+        require_once BASE_PATH . '/controllers/DocumentController.php';
+        (new DocumentController())->emptyTrash();
+        break;
+
     case 'documents.bulk_delete':
         require_once BASE_PATH . '/controllers/DocumentController.php';
         (new DocumentController())->bulkDelete();

@@ -53,7 +53,7 @@ class CategoryController
         }
 
         $catId = $this->catModel->create($nama, $deskripsi);
-        $this->logModel->log($_SESSION['user_id'], 'CREATE_CATEGORY', "Membuat kategori: $nama (ID: $catId)");
+        $this->logModel->log($_SESSION['user_id'], 'CREATE_CATEGORY', "Membuat kategori baru: '$nama'");
         $_SESSION['flash_success'] = 'Kategori berhasil ditambahkan!';
         header('Location: ' . BASE_URL . '/index.php?page=categories');
         exit;
@@ -88,7 +88,7 @@ class CategoryController
         }
 
         $this->catModel->update($id, $nama, $deskripsi);
-        $this->logModel->log($_SESSION['user_id'], 'UPDATE_CATEGORY', "Update kategori ID: $id → $nama");
+        $this->logModel->log($_SESSION['user_id'], 'UPDATE_CATEGORY', "Memperbarui kategori menjadi '$nama'");
         $_SESSION['flash_success'] = 'Kategori berhasil diperbarui!';
         header('Location: ' . BASE_URL . '/index.php?page=categories');
         exit;
@@ -96,8 +96,10 @@ class CategoryController
 
     public function delete(int $id): void
     {
+        $category = $this->catModel->findById($id);
+        $catName = $category ? $category['nama'] : 'Kategori';
         $this->catModel->delete($id);
-        $this->logModel->log($_SESSION['user_id'], 'DELETE_CATEGORY', "Menghapus kategori ID: $id");
+        $this->logModel->log($_SESSION['user_id'], 'DELETE_CATEGORY', "Menghapus kategori: '$catName'");
         $_SESSION['flash_success'] = 'Kategori berhasil dihapus.';
         header('Location: ' . BASE_URL . '/index.php?page=categories');
         exit;

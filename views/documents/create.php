@@ -66,8 +66,8 @@ require_once BASE_PATH . '/views/layouts/sidebar.php';
                               placeholder="Deskripsi singkat dokumen (opsional)..."></textarea>
                 </div>
 
-                <!-- Nominal & Pihak Terkait (side by side) -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <!-- Keuangan / Waktu (side by side) -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
                     <div>
                         <label for="doc-nominal" class="mb-1.5 block text-sm font-semibold text-slate-700">
                             Nominal (Rp)
@@ -85,6 +85,14 @@ require_once BASE_PATH . '/views/layouts/sidebar.php';
                                class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800
                                       placeholder-slate-400 outline-none transition-all focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100"
                                placeholder="Nama pihak terkait...">
+                    </div>
+                    <div>
+                        <label for="doc-tanggal" class="mb-1.5 block text-sm font-semibold text-slate-700">
+                            Tanggal Aktivitas
+                        </label>
+                        <input type="date" name="tanggal_transaksi" id="doc-tanggal"
+                               class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800
+                                      placeholder-slate-400 outline-none transition-all focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100">
                     </div>
                 </div>
 
