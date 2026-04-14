@@ -1,0 +1,64 @@
+# ============================================================
+# .htaccess — Konfigurasi Apache untuk Sistem Manajemen Arsip
+# ============================================================
+
+Options -Indexes
+Options -MultiViews
+
+# ===== Rewrite Engine =====
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Redirect www ke non-www (sesuaikan domain)
+    # RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
+    # RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+
+    # Izinkan akses ke file/folder nyata
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # Semua request diarahkan ke index.php
+    RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
+</IfModule>
+
+# ===== Proteksi File Sensitif =====
+<FilesMatch "\.(env|sql|log|md|json|lock|gitignore)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Blok akses langsung ke folder sensitif dan file PHP di folder uploads
+<IfModule mod_rewrite.c>
+    RewriteRule ^(config|database|models|controllers|views) - [F,L]
+    RewriteRule ^public/uploads/.*\.php$ - [F,L]
+</IfModule>
+
+# ===== Security Headers =====
+<IfModule mod_headers.c>
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# ===== Enkripsi HTTPS (aktifkan jika ada SSL) =====
+# <IfModule mod_ssl.c>
+#     Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+# </IfModule>
+
+# ===== Kompresi GZIP =====
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json text/plain
+</IfModule>
+
+# ===== Browser Caching =====
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css                  "access plus 1 month"
+    ExpiresByType application/javascript    "access plus 1 month"
+    ExpiresByType image/png                 "access plus 1 year"
+    ExpiresByType image/jpeg                "access plus 1 year"
+    ExpiresByType image/gif                 "access plus 1 year"
+    ExpiresByType image/svg+xml             "access plus 1 year"
+    ExpiresByType application/pdf           "access plus 1 week"
+</IfModule>

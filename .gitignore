@@ -1,0 +1,4 @@
+/fix_pass.php
+/test_db.php
+/public/uploads/*
+!/public/uploads/.gitkeep
