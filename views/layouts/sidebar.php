@@ -276,27 +276,33 @@ function isGroupActive(array $pages, string $currentPage): bool {
         </div>
     </header>
 
-    <!-- Flash Messages -->
+    <!-- Flash Messages via SweetAlert2 -->
     <?php if (isset($_SESSION['flash_success'])): ?>
-    <div class="mx-4 mt-4 flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800 animate-slide-down shadow-sm"
-         role="alert" id="flash-success">
-        <i data-feather="check-circle" class="h-5 w-5 text-green-600 flex-shrink-0"></i>
-        <span><?= htmlspecialchars($_SESSION['flash_success']) ?></span>
-        <button onclick="this.parentElement.remove()" class="ml-auto rounded-lg p-0.5 hover:bg-green-100 transition-colors" aria-label="Tutup">
-            <i data-feather="x" class="h-4 w-4"></i>
-        </button>
-    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: '<?= addslashes(htmlspecialchars($_SESSION['flash_success'])) ?>',
+                confirmButtonColor: '#2563eb',
+                showConfirmButton: false,
+                timer: 2000
+            });
+        });
+    </script>
     <?php unset($_SESSION['flash_success']); endif; ?>
 
     <?php if (isset($_SESSION['flash_error'])): ?>
-    <div class="mx-4 mt-4 flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 animate-slide-down shadow-sm"
-         role="alert" id="flash-error">
-        <i data-feather="alert-circle" class="h-5 w-5 text-red-600 flex-shrink-0"></i>
-        <span><?= $_SESSION['flash_error'] ?></span>
-        <button onclick="this.parentElement.remove()" class="ml-auto rounded-lg p-0.5 hover:bg-red-100 transition-colors" aria-label="Tutup">
-            <i data-feather="x" class="h-4 w-4"></i>
-        </button>
-    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                icon: 'error',
+                title: 'Perhatian!',
+                text: '<?= addslashes(htmlspecialchars($_SESSION['flash_error'])) ?>',
+                confirmButtonColor: '#2563eb'
+            });
+        });
+    </script>
     <?php unset($_SESSION['flash_error']); endif; ?>
 
     <!-- ===== PAGE CONTENT STARTS HERE ===== -->

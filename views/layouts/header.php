@@ -61,6 +61,9 @@
 
     <!-- Feather Icons -->
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js" defer></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="h-full bg-slate-100 font-sans antialiased">
 <script>window.BASE_URL = '<?= BASE_URL ?>';</script>
