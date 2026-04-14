@@ -89,14 +89,14 @@ require_once BASE_PATH . '/views/layouts/sidebar.php';
                     <div class="space-y-4">
                         <div>
                             <label for="password" class="mb-1.5 block text-sm font-medium text-slate-700">Password Baru</label>
-                            <input type="password" name="password" id="password"
+                            <input type="password" name="password" id="password" autocomplete="new-password"
                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                                    placeholder="Minimal 8 karakter">
                         </div>
 
                         <div>
                             <label for="confirm_password" class="mb-1.5 block text-sm font-medium text-slate-700">Konfirmasi Password Baru</label>
-                            <input type="password" name="confirm_password" id="confirm_password"
+                            <input type="password" name="confirm_password" id="confirm_password" autocomplete="new-password"
                                    class="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                                    placeholder="Ulangi password baru">
                         </div>
@@ -130,8 +130,7 @@ function previewImage(event) {
     }
     if (event.target.files[0]) {
         reader.readAsDataURL(event.target.files[0]);
-        // Otomatis submit form ketika foto dipilih
-        document.querySelector('form').submit();
+        // Form tidak lagi di-submit otomatis agar tidak bentrok dengan auto-fill password
     }
 }
 </script>
