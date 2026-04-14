@@ -159,15 +159,13 @@ INSERT INTO users (nama, email, password, role, status) VALUES
     'approved'
 );
 
--- Kategori Awal
+-- Kategori Awal (Standar Divisi Transaksi)
 INSERT INTO categories (nama, deskripsi) VALUES
-('Surat Masuk',    'Dokumen surat yang diterima dari pihak eksternal'),
-('Surat Keluar',   'Dokumen surat yang dikirim ke pihak eksternal'),
-('Transaksi',      'Dokumen terkait transaksi keuangan'),
-('Kontrak',        'Dokumen perjanjian dan kontrak kerja sama'),
-('Laporan',        'Laporan periodik dan tahunan'),
-('Nota Dinas',     'Nota dinas internal kantor'),
-('Arsip Umum',     'Dokumen arsip umum lainnya');
+('Setoran',    'Dokumen aktivitas setoran tunai atau nontunai'),
+('Penarikan',  'Dokumen aktivitas penarikan tabungan atau giro'),
+('Transfer',   'Dokumen aktivitas pengiriman uang (internal/eksternal)'),
+('Kliring',    'Dokumen aktivitas proses kliring antar bank'),
+('Valas',      'Dokumen aktivitas transaksi valuta asing');
 
 -- ============================================================
 -- VIEW: Ringkasan dokumen per kategori (exclude soft-deleted)
