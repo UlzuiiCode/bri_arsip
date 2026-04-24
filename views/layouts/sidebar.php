@@ -47,13 +47,9 @@ function isGroupActive(array $pages, string $currentPage): bool {
     <!-- Profil Pengguna Aktif -->
     <div class="border-b border-slate-700/60 px-5 py-4">
         <div class="flex items-center gap-3">
-            <?php if (!empty($_SESSION['user_foto']) && file_exists(BASE_PATH . '/public/uploads/profiles/' . $_SESSION['user_foto'])): ?>
-                <img src="<?= BASE_URL ?>/public/uploads/profiles/<?= htmlspecialchars($_SESSION['user_foto']) ?>" alt="Avatar" class="h-9 w-9 rounded-full object-cover shadow-md ring-2 ring-slate-700/50 flex-shrink-0">
-            <?php else: ?>
-                <div class="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary-400 to-primary-600 text-white text-sm font-bold shadow-md flex-shrink-0">
-                    <?= strtoupper(substr($_SESSION['user_nama'] ?? 'U', 0, 1)) ?>
-                </div>
-            <?php endif; ?>
+            <div class="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary-400 to-primary-600 text-white text-sm font-bold shadow-md flex-shrink-0">
+                <?= strtoupper(substr($_SESSION['user_nama'] ?? 'U', 0, 1)) ?>
+            </div>
             <div class="min-w-0">
                 <p class="truncate text-sm font-semibold text-white"><?= htmlspecialchars($_SESSION['user_nama'] ?? '-') ?></p>
                 <p class="text-xs text-slate-400 capitalize"><?= htmlspecialchars($_SESSION['user_role'] ?? '-') ?></p>
@@ -114,14 +110,6 @@ function isGroupActive(array $pages, string $currentPage): bool {
                 </a>
             </li>
 
-            <li>
-                <a href="<?= BASE_URL ?>/index.php?page=categories"
-                   id="nav-categories"
-                   class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 <?= isActive('categories', $currentPage) ?>">
-                    <i data-feather="folder" class="h-4 w-4 flex-shrink-0"></i>
-                    <span>Kategori</span>
-                </a>
-            </li>
         </ul>
 
         <?php if (($_SESSION['user_role'] ?? '') === 'admin'):
@@ -231,10 +219,12 @@ function isGroupActive(array $pages, string $currentPage): bool {
                             Memuat...
                         </div>
                     </div>
+                    <?php if (($_SESSION['user_role'] ?? '') === 'admin'): ?>
                     <a href="<?= BASE_URL ?>/index.php?page=activity_logs"
                        class="block text-center px-4 py-2.5 text-xs font-semibold text-blue-600 hover:bg-blue-50 border-t border-slate-100 transition-colors">
                         Lihat semua aktivitas &rarr;
                     </a>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -245,11 +235,7 @@ function isGroupActive(array $pages, string $currentPage): bool {
                                from-primary-400 to-primary-600 text-sm font-bold text-white shadow-md
                                hover:shadow-primary-300/50 transition-all overflow-hidden"
                         aria-expanded="false" aria-haspopup="true">
-                    <?php if (!empty($_SESSION['user_foto']) && file_exists(BASE_PATH . '/public/uploads/profiles/' . $_SESSION['user_foto'])): ?>
-                        <img src="<?= BASE_URL ?>/public/uploads/profiles/<?= htmlspecialchars($_SESSION['user_foto']) ?>" alt="Avatar" class="h-full w-full object-cover">
-                    <?php else: ?>
                         <?= strtoupper(substr($_SESSION['user_nama'] ?? 'U', 0, 1)) ?>
-                    <?php endif; ?>
                 </button>
 
                 <!-- Dropdown -->
@@ -261,11 +247,6 @@ function isGroupActive(array $pages, string $currentPage): bool {
                         <p class="text-sm font-semibold text-slate-800 truncate"><?= htmlspecialchars($_SESSION['user_nama'] ?? '') ?></p>
                         <p class="text-xs text-slate-500 capitalize"><?= htmlspecialchars($_SESSION['user_role'] ?? '') ?></p>
                     </div>
-                    <a href="<?= BASE_URL ?>/index.php?page=profile"
-                       class="flex items-center gap-2.5 rounded-xl px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                       role="menuitem" id="dropdown-profile">
-                        <i data-feather="user" class="h-4 w-4 text-slate-400"></i> Profil Saya
-                    </a>
                     <a href="<?= BASE_URL ?>/index.php?page=logout"
                        class="flex items-center gap-2.5 rounded-xl px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
                        role="menuitem" id="dropdown-logout">

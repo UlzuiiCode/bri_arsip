@@ -73,6 +73,16 @@ class ActivityLogModel
     }
 
     /**
+     * Hitung total log milik user tertentu.
+     */
+    public function countByUser(int $userId): int
+    {
+        $stmt = $this->db->prepare("SELECT COUNT(*) FROM activity_logs WHERE user_id = :user_id");
+        $stmt->execute([':user_id' => $userId]);
+        return (int) $stmt->fetchColumn();
+    }
+
+    /**
      * Hapus log yang lebih lama dari X hari.
      */
     public function purgeBefore(int $days = 90): int

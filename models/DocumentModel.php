@@ -25,9 +25,8 @@ class DocumentModel
      */
     public function getAll(int $limit = 0, int $offset = 0): array
     {
-        $sql = "SELECT d.*, c.nama AS nama_kategori, u.nama AS nama_uploader
+        $sql = "SELECT d.*, u.nama AS nama_uploader
                 FROM documents d
-                LEFT JOIN categories c ON d.category_id = c.id
                 LEFT JOIN users u ON d.uploaded_by = u.id
                 WHERE d.deleted_at IS NULL
                 ORDER BY COALESCE(d.tanggal_transaksi, d.created_at) DESC";
@@ -48,22 +47,24 @@ class DocumentModel
     /**
      * Ambil dokumen aktif dengan pagination, search, dan filter kategori.
      */
-    public function getAllPaginated(int $limit, int $offset, string $search = '', int $categoryId = 0): array
+    public function getAllPaginated(int $limit, int $offset, string $search = '', ?int $categoryId = null): array
     {
-        $sql = "SELECT d.*, c.nama AS nama_kategori, u.nama AS nama_uploader
+        $sql = "SELECT d.*, u.nama AS nama_uploader, c.nama AS category_nama
                 FROM documents d
-                LEFT JOIN categories c ON d.category_id = c.id
                 LEFT JOIN users u ON d.uploaded_by = u.id
+                LEFT JOIN categories c ON d.category_id = c.id
                 WHERE d.deleted_at IS NULL";
         $params = [];
 
         if (!empty($search)) {
-            $sql .= " AND (d.judul LIKE :search OR d.deskripsi LIKE :search OR c.nama LIKE :search)";
-            $params[':search'] = '%' . $search . '%';
+            $sql .= " AND (d.judul LIKE :s1 OR d.deskripsi LIKE :s2)";
+            $params[':s1'] = '%' . $search . '%';
+            $params[':s2'] = '%' . $search . '%';
         }
-        if ($categoryId > 0) {
-            $sql .= " AND d.category_id = :category_id";
-            $params[':category_id'] = $categoryId;
+
+        if ($categoryId !== null) {
+            $sql .= " AND d.category_id = :cat_id";
+            $params[':cat_id'] = $categoryId;
         }
 
         $sql .= " ORDER BY COALESCE(d.tanggal_transaksi, d.created_at) DESC LIMIT :limit OFFSET :offset";
@@ -81,20 +82,21 @@ class DocumentModel
     /**
      * Hitung total dokumen aktif dengan search dan filter.
      */
-    public function countFiltered(string $search = '', int $categoryId = 0): int
+    public function countFiltered(string $search = '', ?int $categoryId = null): int
     {
         $sql = "SELECT COUNT(*) FROM documents d
-                LEFT JOIN categories c ON d.category_id = c.id
                 WHERE d.deleted_at IS NULL";
         $params = [];
 
         if (!empty($search)) {
-            $sql .= " AND (d.judul LIKE :search OR d.deskripsi LIKE :search OR c.nama LIKE :search)";
-            $params[':search'] = '%' . $search . '%';
+            $sql .= " AND (d.judul LIKE :s1 OR d.deskripsi LIKE :s2)";
+            $params[':s1'] = '%' . $search . '%';
+            $params[':s2'] = '%' . $search . '%';
         }
-        if ($categoryId > 0) {
-            $sql .= " AND d.category_id = :category_id";
-            $params[':category_id'] = $categoryId;
+
+        if ($categoryId !== null) {
+            $sql .= " AND d.category_id = :cat_id";
+            $params[':cat_id'] = $categoryId;
         }
 
         $stmt = $this->db->prepare($sql);
@@ -111,9 +113,8 @@ class DocumentModel
     public function findById(int $id): array|false
     {
         $stmt = $this->db->prepare(
-            "SELECT d.*, c.nama AS nama_kategori, u.nama AS nama_pengunggah
+            "SELECT d.*, u.nama AS nama_pengunggah
              FROM documents d
-             LEFT JOIN categories c ON d.category_id = c.id
              LEFT JOIN users u ON d.uploaded_by = u.id
              WHERE d.id = :id LIMIT 1"
         );
@@ -128,37 +129,21 @@ class DocumentModel
     public function search(string $keyword): array
     {
         $stmt = $this->db->prepare(
-            "SELECT d.*, c.nama AS nama_kategori, u.nama AS nama_uploader
+            "SELECT d.*, u.nama AS nama_uploader
              FROM documents d
-             LEFT JOIN categories c ON d.category_id = c.id
              LEFT JOIN users u ON d.uploaded_by = u.id
              WHERE d.deleted_at IS NULL
-               AND (d.judul LIKE :keyword OR d.deskripsi LIKE :keyword OR c.nama LIKE :keyword)
+               AND (d.judul LIKE :k1 OR d.deskripsi LIKE :k2)
              ORDER BY COALESCE(d.tanggal_transaksi, d.created_at) DESC"
         );
-        $keyword = '%' . $keyword . '%';
-        $stmt->bindValue(':keyword', $keyword, PDO::PARAM_STR);
+        $searchKeyword = '%' . $keyword . '%';
+        $stmt->bindValue(':k1', $searchKeyword, PDO::PARAM_STR);
+        $stmt->bindValue(':k2', $searchKeyword, PDO::PARAM_STR);
         $stmt->execute();
         return $stmt->fetchAll();
     }
 
-    /**
-     * Ambil dokumen aktif berdasarkan kategori.
-     */
-    public function getByCategory(int $categoryId): array
-    {
-        $stmt = $this->db->prepare(
-            "SELECT d.*, c.nama AS nama_kategori, u.nama AS nama_uploader
-             FROM documents d
-             LEFT JOIN categories c ON d.category_id = c.id
-             LEFT JOIN users u ON d.uploaded_by = u.id
-             WHERE d.deleted_at IS NULL AND d.category_id = :category_id
-             ORDER BY COALESCE(d.tanggal_transaksi, d.created_at) DESC"
-        );
-        $stmt->bindValue(':category_id', $categoryId, PDO::PARAM_INT);
-        $stmt->execute();
-        return $stmt->fetchAll();
-    }
+
 
     /**
      * Ambil dokumen berdasarkan array ID.
@@ -168,9 +153,8 @@ class DocumentModel
         if (empty($ids)) return [];
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
         $stmt = $this->db->prepare(
-            "SELECT d.*, c.nama AS nama_kategori, u.nama AS nama_uploader
+            "SELECT d.*, u.nama AS nama_uploader
              FROM documents d
-             LEFT JOIN categories c ON d.category_id = c.id
              LEFT JOIN users u ON d.uploaded_by = u.id
              WHERE d.id IN ($placeholders)"
         );
@@ -187,10 +171,10 @@ class DocumentModel
     public function getRecent(int $limit = 5): array
     {
         $stmt = $this->db->prepare(
-            "SELECT d.*, c.nama AS nama_kategori, u.nama AS nama_uploader
+            "SELECT d.*, u.nama AS nama_uploader, c.nama AS category_nama
              FROM documents d
-             LEFT JOIN categories c ON d.category_id = c.id
              LEFT JOIN users u ON d.uploaded_by = u.id
+             LEFT JOIN categories c ON d.category_id = c.id
              WHERE d.deleted_at IS NULL
              ORDER BY COALESCE(d.tanggal_transaksi, d.created_at) DESC LIMIT :limit"
         );
@@ -209,8 +193,8 @@ class DocumentModel
     public function create(array $data): int
     {
         $stmt = $this->db->prepare(
-            "INSERT INTO documents (judul, deskripsi, file_path, file_name, file_size, file_type, category_id, uploaded_by, nominal, pihak_terkait, tanggal_transaksi)
-             VALUES (:judul, :deskripsi, :file_path, :file_name, :file_size, :file_type, :category_id, :uploaded_by, :nominal, :pihak_terkait, :tanggal_transaksi)"
+            "INSERT INTO documents (judul, deskripsi, file_path, file_name, file_size, file_type, uploaded_by, category_id, nominal, pihak_terkait, tanggal_transaksi)
+             VALUES (:judul, :deskripsi, :file_path, :file_name, :file_size, :file_type, :uploaded_by, :category_id, :nominal, :pihak_terkait, :tanggal_transaksi)"
         );
         $stmt->execute([
             ':judul'        => $data['judul'],
@@ -219,8 +203,8 @@ class DocumentModel
             ':file_name'    => $data['file_name'],
             ':file_size'    => $data['file_size'] ?? null,
             ':file_type'    => $data['file_type'] ?? null,
-            ':category_id'  => $data['category_id'],
             ':uploaded_by'  => $data['uploaded_by'],
+            ':category_id'  => $data['category_id'] ?? null,
             ':nominal'      => $data['nominal'] ?? null,
             ':pihak_terkait' => $data['pihak_terkait'] ?? null,
             ':tanggal_transaksi' => $data['tanggal_transaksi'] ?? null,
@@ -247,7 +231,7 @@ class DocumentModel
         return $stmt->execute([
             ':judul'         => $data['judul'],
             ':deskripsi'     => $data['deskripsi'] ?? null,
-            ':category_id'   => $data['category_id'],
+            ':category_id'   => $data['category_id'] ?? null,
             ':nominal'       => $data['nominal'] ?? null,
             ':pihak_terkait' => $data['pihak_terkait'] ?? null,
             ':tanggal_transaksi' => $data['tanggal_transaksi'] ?? null,
@@ -312,9 +296,8 @@ class DocumentModel
     public function getTrashed(): array
     {
         return $this->db->query(
-            "SELECT d.*, c.nama AS nama_kategori, u.nama AS nama_uploader
+            "SELECT d.*, u.nama AS nama_uploader
              FROM documents d
-             LEFT JOIN categories c ON d.category_id = c.id
              LEFT JOIN users u ON d.uploaded_by = u.id
              WHERE d.deleted_at IS NOT NULL
              ORDER BY d.deleted_at DESC"
@@ -344,22 +327,18 @@ class DocumentModel
     /**
      * Ambil semua dokumen aktif untuk export (tanpa pagination).
      */
-    public function getAllForExport(string $search = '', int $categoryId = 0): array
+    public function getAllForExport(string $search = ''): array
     {
-        $sql = "SELECT d.*, c.nama AS nama_kategori, u.nama AS nama_uploader
+        $sql = "SELECT d.*, u.nama AS nama_uploader
                 FROM documents d
-                LEFT JOIN categories c ON d.category_id = c.id
                 LEFT JOIN users u ON d.uploaded_by = u.id
                 WHERE d.deleted_at IS NULL";
         $params = [];
 
         if (!empty($search)) {
-            $sql .= " AND (d.judul LIKE :search OR d.deskripsi LIKE :search OR c.nama LIKE :search)";
-            $params[':search'] = '%' . $search . '%';
-        }
-        if ($categoryId > 0) {
-            $sql .= " AND d.category_id = :category_id";
-            $params[':category_id'] = $categoryId;
+            $sql .= " AND (d.judul LIKE :s1 OR d.deskripsi LIKE :s2)";
+            $params[':s1'] = '%' . $search . '%';
+            $params[':s2'] = '%' . $search . '%';
         }
 
         $sql .= " ORDER BY COALESCE(d.tanggal_transaksi, d.created_at) DESC";

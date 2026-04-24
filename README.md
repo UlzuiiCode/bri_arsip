@@ -15,14 +15,13 @@ pkl-arsip-php/
 │   ├── AuthController.php       # Login, Logout, Register
 │   ├── DashboardController.php  # Halaman dashboard
 │   ├── DocumentController.php   # CRUD dokumen + upload/download
-│   ├── CategoryController.php   # CRUD kategori
 │   ├── UserController.php       # Manajemen pengguna (admin)
-│   └── ActivityLogController.php# Log audit
+│   ├── ActivityLogController.php# Log audit
+│   └── ProfileController.php    # Manajemen profil user
 │
 ├── models/
 │   ├── UserModel.php            # Query tabel users
 │   ├── DocumentModel.php        # Query tabel documents
-│   ├── CategoryModel.php        # Query tabel categories
 │   └── ActivityLogModel.php     # Query tabel activity_logs
 │
 ├── views/
@@ -40,14 +39,12 @@ pkl-arsip-php/
 │   │   ├── create.php           # Form upload dokumen (drag & drop)
 │   │   ├── show.php             # Detail dokumen
 │   │   └── edit.php             # Form edit dokumen
-│   ├── categories/
-│   │   ├── index.php            # Grid kategori
-│   │   ├── create.php           # Form tambah kategori
-│   │   └── edit.php             # Form edit kategori
 │   ├── users/
 │   │   ├── index.php            # Daftar pengguna (admin only)
 │   │   ├── create.php           # Form tambah pengguna
 │   │   └── edit.php             # Form edit pengguna
+│   ├── profile/
+│   │   └── index.php            # Manajemen profil & foto
 │   └── activity_logs/
 │       └── index.php            # Log aktivitas dengan pagination
 │

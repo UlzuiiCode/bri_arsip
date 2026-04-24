@@ -43,12 +43,12 @@ require_once BASE_PATH . '/views/layouts/sidebar.php';
                 <!-- Kategori -->
                 <div>
                     <label for="doc-kategori" class="mb-1.5 block text-sm font-semibold text-slate-700">
-                        Kategori <span class="text-red-500">*</span>
+                        Kategori
                     </label>
-                    <select name="category_id" id="doc-kategori" required
+                    <select name="category_id" id="doc-kategori"
                             class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800
                                    outline-none transition-all focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100">
-                        <option value="">-- Pilih Kategori --</option>
+                        <option value="">-- Pilih Kategori (opsional) --</option>
                         <?php foreach ($categories as $cat): ?>
                         <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['nama']) ?></option>
                         <?php endforeach; ?>

@@ -16,8 +16,7 @@ require_once BASE_PATH . '/views/layouts/sidebar.php';
         </div>
         <div class="flex items-center gap-2.5">
             <!-- Export Buttons -->
-            <div class="hidden sm:flex items-center gap-1.5">
-                <a href="<?= BASE_URL ?>/index.php?page=documents.export_csv<?= !empty($_GET['search']) ? '&search=' . urlencode($_GET['search']) : '' ?><?= !empty($_GET['category_id']) ? '&category_id=' . (int)$_GET['category_id'] : '' ?>"
+                <a href="<?= BASE_URL ?>/index.php?page=documents.export_csv<?= !empty($_GET['search']) ? '&search=' . urlencode($_GET['search']) : '' ?>"
                    id="btn-export-csv"
                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors"
                    title="Export CSV">
@@ -26,7 +25,7 @@ require_once BASE_PATH . '/views/layouts/sidebar.php';
                     </svg>
                     CSV
                 </a>
-                <a href="<?= BASE_URL ?>/index.php?page=documents.export_pdf<?= !empty($_GET['search']) ? '&search=' . urlencode($_GET['search']) : '' ?><?= !empty($_GET['category_id']) ? '&category_id=' . (int)$_GET['category_id'] : '' ?>"
+                <a href="<?= BASE_URL ?>/index.php?page=documents.export_pdf<?= !empty($_GET['search']) ? '&search=' . urlencode($_GET['search']) : '' ?>"
                    id="btn-export-pdf" target="_blank"
                    class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors"
                    title="Export PDF">
@@ -35,7 +34,6 @@ require_once BASE_PATH . '/views/layouts/sidebar.php';
                     </svg>
                     PDF
                 </a>
-            </div>
             <a href="<?= BASE_URL ?>/index.php?page=documents.create"
                id="btn-upload-dokumen"
                class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white
@@ -55,25 +53,27 @@ require_once BASE_PATH . '/views/layouts/sidebar.php';
             <div class="flex-1">
                 <input type="text" name="search" id="search-input"
                        value="<?= htmlspecialchars($_GET['search'] ?? '') ?>"
-                       placeholder="Cari judul, deskripsi, atau kategori..."
+                       placeholder="Cari judul atau deskripsi..."
                        class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-800
-                              placeholder-slate-400 outline-none transition-all focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100">
+                               placeholder-slate-400 outline-none transition-all focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100">
             </div>
-            <select name="category_id" id="filter-category"
-                    class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-700
-                           outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100">
-                <option value="">Semua Kategori</option>
-                <?php foreach ($categories as $cat): ?>
-                <option value="<?= $cat['id'] ?>" <?= (($_GET['category_id'] ?? '') == $cat['id']) ? 'selected' : '' ?>>
-                    <?= htmlspecialchars($cat['nama']) ?>
-                </option>
-                <?php endforeach; ?>
-            </select>
+            <div class="sm:w-48">
+                <select name="category" id="filter-category"
+                        class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-800
+                               outline-none transition-all focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100">
+                    <option value="">Semua Kategori</option>
+                    <?php foreach ($categories as $cat): ?>
+                    <option value="<?= $cat['id'] ?>" <?= (($_GET['category'] ?? '') == $cat['id']) ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($cat['nama']) ?>
+                    </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
             <button type="submit" id="btn-filter"
                     class="rounded-xl bg-slate-800 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700 transition-colors">
                 Filter
             </button>
-            <?php if (!empty($_GET['search']) || !empty($_GET['category_id'])): ?>
+            <?php if (!empty($_GET['search']) || !empty($_GET['category'])): ?>
             <a href="<?= BASE_URL ?>/index.php?page=documents" id="btn-reset-filter"
                class="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
                 Reset
@@ -140,7 +140,6 @@ require_once BASE_PATH . '/views/layouts/sidebar.php';
                             <input type="checkbox" id="select-all-cb" class="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer">
                         </th>
                         <th class="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">Judul</th>
-                        <th class="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 hidden md:table-cell">Kategori</th>
                         <th class="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 hidden lg:table-cell">Pengunggah</th>
                         <th class="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 hidden lg:table-cell">Tanggal</th>
                         <th class="px-4 py-3.5 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">Aksi</th>
@@ -176,16 +175,18 @@ require_once BASE_PATH . '/views/layouts/sidebar.php';
                         </td>
                         <td class="px-4 py-4">
                             <p class="font-medium text-slate-800"><?= htmlspecialchars($doc['judul']) ?></p>
-                            <?php if ($doc['nominal']): ?>
-                            <p class="text-xs text-emerald-600 font-medium mt-0.5">
-                                Rp <?= number_format($doc['nominal'], 0, ',', '.') ?>
-                            </p>
-                            <?php endif; ?>
-                        </td>
-                        <td class="px-4 py-4 hidden md:table-cell">
-                            <span class="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
-                                <?= htmlspecialchars($doc['nama_kategori'] ?? 'Tanpa Kategori') ?>
-                            </span>
+                            <div class="mt-1 flex items-center gap-2 flex-wrap">
+                                <?php if (!empty($doc['category_nama'])): ?>
+                                <span class="inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20">
+                                    <?= htmlspecialchars($doc['category_nama']) ?>
+                                </span>
+                                <?php endif; ?>
+                                <?php if ($doc['nominal']): ?>
+                                <span class="text-xs text-emerald-600 font-medium">
+                                    Rp <?= number_format($doc['nominal'], 0, ',', '.') ?>
+                                </span>
+                                <?php endif; ?>
+                            </div>
                         </td>
                         <td class="px-4 py-4 text-slate-500 hidden lg:table-cell">
                             <div class="text-sm font-medium text-slate-700"><?= htmlspecialchars($doc['nama_uploader'] ?? '-') ?></div>
@@ -242,7 +243,7 @@ require_once BASE_PATH . '/views/layouts/sidebar.php';
                 <?php
                 $queryBase = 'page=documents';
                 if (!empty($_GET['search']))      $queryBase .= '&search=' . urlencode($_GET['search']);
-                if (!empty($_GET['category_id'])) $queryBase .= '&category_id=' . (int)$_GET['category_id'];
+                if (!empty($_GET['category']))     $queryBase .= '&category=' . urlencode($_GET['category']);
                 ?>
                 <?php if ($page > 1): ?>
                 <a href="<?= BASE_URL ?>/index.php?<?= $queryBase ?>&p=<?= $page - 1 ?>"

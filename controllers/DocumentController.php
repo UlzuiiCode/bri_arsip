@@ -1,8 +1,8 @@
 <?php
 
 require_once BASE_PATH . '/models/DocumentModel.php';
-require_once BASE_PATH . '/models/CategoryModel.php';
 require_once BASE_PATH . '/models/ActivityLogModel.php';
+require_once BASE_PATH . '/models/CategoryModel.php';
 
 /**
  * Controller Dokumen
@@ -11,14 +11,14 @@ require_once BASE_PATH . '/models/ActivityLogModel.php';
 class DocumentController
 {
     private DocumentModel $docModel;
-    private CategoryModel $catModel;
     private ActivityLogModel $logModel;
+    private CategoryModel $catModel;
 
     public function __construct()
     {
         $this->docModel = new DocumentModel();
-        $this->catModel = new CategoryModel();
         $this->logModel = new ActivityLogModel();
+        $this->catModel = new CategoryModel();
     }
 
     /**
@@ -27,7 +27,7 @@ class DocumentController
     public function index(): void
     {
         $keyword    = trim($_GET['search'] ?? '');
-        $categoryId = (int) ($_GET['category_id'] ?? 0);
+        $categoryId = filter_input(INPUT_GET, 'category', FILTER_VALIDATE_INT) ?: null;
         $page       = max(1, (int) ($_GET['p'] ?? 1));
         $perPage    = 15;
         $offset     = ($page - 1) * $perPage;
@@ -68,14 +68,14 @@ class DocumentController
 
         $judul       = trim(filter_input(INPUT_POST, 'judul', FILTER_SANITIZE_SPECIAL_CHARS));
         $deskripsi   = trim(filter_input(INPUT_POST, 'deskripsi', FILTER_SANITIZE_SPECIAL_CHARS));
-        $categoryId  = (int) filter_input(INPUT_POST, 'category_id', FILTER_SANITIZE_NUMBER_INT);
         $nominal     = filter_input(INPUT_POST, 'nominal', FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
         $pihakTerkait = trim(filter_input(INPUT_POST, 'pihak_terkait', FILTER_SANITIZE_SPECIAL_CHARS));
         $tanggalTransaksi = trim($_POST['tanggal_transaksi'] ?? '');
+        $categoryId  = filter_input(INPUT_POST, 'category_id', FILTER_VALIDATE_INT) ?: null;
 
         // Validasi
-        if (empty($judul) || $categoryId <= 0) {
-            $_SESSION['flash_error'] = 'Judul dan kategori wajib diisi.';
+        if (empty($judul)) {
+            $_SESSION['flash_error'] = 'Judul wajib diisi.';
             header('Location: ' . BASE_URL . '/index.php?page=documents.create');
             exit;
         }
@@ -95,11 +95,11 @@ class DocumentController
             'file_name'    => $fileData['file_name'],
             'file_size'    => $fileData['file_size'],
             'file_type'    => $fileData['file_type'],
-            'category_id'  => $categoryId,
             'uploaded_by'  => $_SESSION['user_id'],
             'nominal'      => $nominal ?: null,
             'pihak_terkait' => $pihakTerkait ?: null,
             'tanggal_transaksi' => $tanggalTransaksi ?: null,
+            'category_id'  => $categoryId,
         ]);
 
         $this->logModel->log(
@@ -133,12 +133,12 @@ class DocumentController
     public function edit(int $id): void
     {
         $document   = $this->docModel->findById($id);
-        $categories = $this->catModel->getAll();
         if (!$document || $document['deleted_at'] !== null) {
             $_SESSION['flash_error'] = 'Dokumen tidak ditemukan.';
             header('Location: ' . BASE_URL . '/index.php?page=documents');
             exit;
         }
+        $categories = $this->catModel->getAll();
         require_once BASE_PATH . '/views/documents/edit.php';
     }
 
@@ -161,18 +161,18 @@ class DocumentController
 
         $judul       = trim(filter_input(INPUT_POST, 'judul', FILTER_SANITIZE_SPECIAL_CHARS));
         $deskripsi   = trim(filter_input(INPUT_POST, 'deskripsi', FILTER_SANITIZE_SPECIAL_CHARS));
-        $categoryId  = (int) filter_input(INPUT_POST, 'category_id', FILTER_SANITIZE_NUMBER_INT);
         $nominal     = filter_input(INPUT_POST, 'nominal', FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
         $pihakTerkait = trim(filter_input(INPUT_POST, 'pihak_terkait', FILTER_SANITIZE_SPECIAL_CHARS));
         $tanggalTransaksi = trim($_POST['tanggal_transaksi'] ?? '');
+        $categoryId  = filter_input(INPUT_POST, 'category_id', FILTER_VALIDATE_INT) ?: null;
 
         $this->docModel->update($id, [
             'judul'        => $judul,
             'deskripsi'    => $deskripsi,
-            'category_id'  => $categoryId,
             'nominal'      => $nominal ?: null,
             'pihak_terkait' => $pihakTerkait ?: null,
             'tanggal_transaksi' => $tanggalTransaksi ?: null,
+            'category_id'  => $categoryId,
         ]);
 
         $this->logModel->log(
@@ -444,8 +444,7 @@ class DocumentController
     public function exportCsv(): void
     {
         $search     = trim($_GET['search'] ?? '');
-        $categoryId = (int) ($_GET['category_id'] ?? 0);
-        $documents  = $this->docModel->getAllForExport($search, $categoryId);
+        $documents  = $this->docModel->getAllForExport($search);
 
         $this->logModel->log(
             $_SESSION['user_id'],
@@ -462,13 +461,12 @@ class DocumentController
         fprintf($output, chr(0xEF) . chr(0xBB) . chr(0xBF));
 
         // Header
-        fputcsv($output, ['No', 'Judul', 'Kategori', 'Deskripsi', 'Nominal (Rp)', 'Pihak Terkait', 'Tanggal Aktivitas', 'Pengunggah', 'Tanggal Upload', 'Nama File', 'Ukuran (KB)']);
+        fputcsv($output, ['No', 'Judul', 'Deskripsi', 'Nominal (Rp)', 'Pihak Terkait', 'Tanggal Aktivitas', 'Pengunggah', 'Tanggal Upload', 'Nama File', 'Ukuran (KB)']);
 
         foreach ($documents as $i => $doc) {
             fputcsv($output, [
                 $i + 1,
                 $doc['judul'],
-                $doc['nama_kategori'] ?? 'Tanpa Kategori',
                 $doc['deskripsi'] ?? '',
                 $doc['nominal'] ? number_format($doc['nominal'], 0, ',', '.') : '',
                 $doc['pihak_terkait'] ?? '',
@@ -490,9 +488,7 @@ class DocumentController
     public function exportPdf(): void
     {
         $search     = trim($_GET['search'] ?? '');
-        $categoryId = (int) ($_GET['category_id'] ?? 0);
-        $documents  = $this->docModel->getAllForExport($search, $categoryId);
-        $categories = $this->catModel->getAll();
+        $documents  = $this->docModel->getAllForExport($search);
 
         $this->logModel->log(
             $_SESSION['user_id'],

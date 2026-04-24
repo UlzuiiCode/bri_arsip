@@ -19,15 +19,33 @@ if (!isset($_SESSION['user_id'])) {
 try {
     $db = getDBConnection();
 
-    $limit = 10;
-    $stmt = $db->prepare(
-        "SELECT al.id, al.action, al.description, al.created_at, u.nama AS nama_pengguna, u.role AS role_pengguna
-         FROM activity_logs al
-         LEFT JOIN users u ON al.user_id = u.id
-         ORDER BY al.created_at DESC
-         LIMIT :limit"
-    );
-    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $limit    = 10;
+    $isAdmin  = (($_SESSION['user_role'] ?? '') === 'admin');
+    $userId   = (int) ($_SESSION['user_id'] ?? 0);
+
+    if ($isAdmin) {
+        // Admin: tampilkan semua aktivitas
+        $stmt = $db->prepare(
+            "SELECT al.id, al.action, al.description, al.created_at, u.nama AS nama_pengguna, u.role AS role_pengguna
+             FROM activity_logs al
+             LEFT JOIN users u ON al.user_id = u.id
+             ORDER BY al.created_at DESC
+             LIMIT :limit"
+        );
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    } else {
+        // Pegawai: hanya aktivitas milik sendiri
+        $stmt = $db->prepare(
+            "SELECT al.id, al.action, al.description, al.created_at, u.nama AS nama_pengguna, u.role AS role_pengguna
+             FROM activity_logs al
+             LEFT JOIN users u ON al.user_id = u.id
+             WHERE al.user_id = :user_id
+             ORDER BY al.created_at DESC
+             LIMIT :limit"
+        );
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    }
     $stmt->execute();
     $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

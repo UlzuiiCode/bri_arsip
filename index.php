@@ -208,36 +208,7 @@ switch ($page) {
         break;
 
 
-    // ===== CATEGORIES =====
-    case 'categories':
-        require_once BASE_PATH . '/controllers/CategoryController.php';
-        (new CategoryController())->index();
-        break;
 
-    case 'categories.create':
-        require_once BASE_PATH . '/controllers/CategoryController.php';
-        (new CategoryController())->create();
-        break;
-
-    case 'categories.store':
-        require_once BASE_PATH . '/controllers/CategoryController.php';
-        (new CategoryController())->store();
-        break;
-
-    case 'categories.edit':
-        require_once BASE_PATH . '/controllers/CategoryController.php';
-        (new CategoryController())->edit($id);
-        break;
-
-    case 'categories.update':
-        require_once BASE_PATH . '/controllers/CategoryController.php';
-        (new CategoryController())->update($id);
-        break;
-
-    case 'categories.delete':
-        require_once BASE_PATH . '/controllers/CategoryController.php';
-        (new CategoryController())->delete($id);
-        break;
 
 
     // ===== ACTIVITY LOGS =====
@@ -246,16 +217,6 @@ switch ($page) {
         (new ActivityLogController())->index();
         break;
 
-    // ===== PROFILE =====
-    case 'profile':
-        require_once BASE_PATH . '/controllers/ProfileController.php';
-        (new ProfileController())->index();
-        break;
-
-    case 'profile.update':
-        require_once BASE_PATH . '/controllers/ProfileController.php';
-        (new ProfileController())->update();
-        break;
 
 
     // ===== 404 DEFAULT =====
