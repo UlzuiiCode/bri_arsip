@@ -217,6 +217,11 @@ switch ($page) {
         (new ActivityLogController())->index();
         break;
 
+    case 'activity_logs.my':
+        require_once BASE_PATH . '/controllers/ActivityLogController.php';
+        (new ActivityLogController())->myActivity();
+        break;
+
 
 
     // ===== 404 DEFAULT =====

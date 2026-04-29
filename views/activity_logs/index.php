@@ -41,13 +41,40 @@ require_once BASE_PATH . '/views/layouts/sidebar.php';
                             <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold
                                 <?php
                                 $action = $log['action'] ?? '';
+
+                                // Mapping nama aksi ke bahasa sederhana
+                                $actionLabels = [
+                                    'LOGIN'              => 'Masuk',
+                                    'LOGOUT'             => 'Keluar',
+                                    'REGISTER'           => 'Daftar Akun',
+                                    'LOGIN_FAILED'       => 'Gagal Masuk',
+                                    'UPLOAD_DOCUMENT'    => 'Unggah Dokumen',
+                                    'UPDATE_DOCUMENT'    => 'Edit Dokumen',
+                                    'DELETE_DOCUMENT'    => 'Hapus Dokumen',
+                                    'RESTORE_DOCUMENT'   => 'Pulihkan Dokumen',
+                                    'FORCE_DELETE_DOCUMENT' => 'Hapus Permanen',
+                                    'DOWNLOAD_DOCUMENT'  => 'Unduh Dokumen',
+                                    'BULK_DELETE_DOCUMENT' => 'Hapus Massal',
+                                    'BULK_DOWNLOAD'      => 'Unduh Massal',
+                                    'EMPTY_TRASH'        => 'Kosongkan Sampah',
+                                    'EXPORT_CSV'         => 'Ekspor CSV',
+                                    'EXPORT_PDF'         => 'Ekspor PDF',
+                                    'APPROVE_USER'       => 'Setujui Akun',
+                                    'REJECT_USER'        => 'Tolak Akun',
+                                    'CREATE_USER'        => 'Tambah Pengguna',
+                                    'UPDATE_USER'        => 'Edit Pengguna',
+                                    'DELETE_USER'        => 'Hapus Pengguna',
+                                    'UPDATE_PROFILE'     => 'Edit Profil',
+                                ];
+                                $actionLabel = $actionLabels[$action] ?? $action;
+
                                 if (str_contains($action, 'LOGIN'))    echo 'bg-green-50 text-green-700';
                                 elseif (str_contains($action, 'DELETE')) echo 'bg-red-50 text-red-700';
                                 elseif (str_contains($action, 'CREATE') || str_contains($action, 'UPLOAD')) echo 'bg-blue-50 text-blue-700';
                                 elseif (str_contains($action, 'UPDATE')) echo 'bg-amber-50 text-amber-700';
                                 else echo 'bg-slate-100 text-slate-600';
                                 ?>">
-                                <?= htmlspecialchars($action) ?>
+                                <?= htmlspecialchars($actionLabel) ?>
                             </span>
                         </td>
                         <td class="px-6 py-3.5 text-slate-500 hidden md:table-cell max-w-xs">

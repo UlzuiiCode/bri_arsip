@@ -36,4 +36,22 @@ class ActivityLogController
 
         require_once BASE_PATH . '/views/activity_logs/index.php';
     }
+
+    /**
+     * Tampilkan log aktivitas milik user yang sedang login.
+     */
+    public function myActivity(): void
+    {
+        $userId  = $_SESSION['user_id'];
+        $page    = max(1, (int) ($_GET['p'] ?? 1));
+        $perPage = 25;
+        $offset  = ($page - 1) * $perPage;
+
+        $logs      = $this->logModel->getByUserPaginated($userId, $perPage, $offset);
+        $total     = $this->logModel->countByUser($userId);
+        $pageTitle = 'Riwayat Aktivitas Saya';
+        $isMyActivity = true;
+
+        require_once BASE_PATH . '/views/activity_logs/my.php';
+    }
 }

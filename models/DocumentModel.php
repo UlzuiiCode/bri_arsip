@@ -21,30 +21,6 @@ class DocumentModel
     // ===================================================
 
     /**
-     * Ambil semua dokumen aktif (belum dihapus) beserta nama kategori (JOIN).
-     */
-    public function getAll(int $limit = 0, int $offset = 0): array
-    {
-        $sql = "SELECT d.*, u.nama AS nama_uploader
-                FROM documents d
-                LEFT JOIN users u ON d.uploaded_by = u.id
-                WHERE d.deleted_at IS NULL
-                ORDER BY COALESCE(d.tanggal_transaksi, d.created_at) DESC";
-
-        if ($limit > 0) {
-            $sql .= " LIMIT :limit OFFSET :offset";
-            $stmt = $this->db->prepare($sql);
-            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-            $stmt->execute();
-        } else {
-            $stmt = $this->db->query($sql);
-        }
-
-        return $stmt->fetchAll();
-    }
-
-    /**
      * Ambil dokumen aktif dengan pagination, search, dan filter kategori.
      */
     public function getAllPaginated(int $limit, int $offset, string $search = '', ?int $categoryId = null): array
@@ -113,37 +89,16 @@ class DocumentModel
     public function findById(int $id): array|false
     {
         $stmt = $this->db->prepare(
-            "SELECT d.*, u.nama AS nama_pengunggah
+            "SELECT d.*, u.nama AS nama_pengunggah, c.nama AS nama_kategori
              FROM documents d
              LEFT JOIN users u ON d.uploaded_by = u.id
+             LEFT JOIN categories c ON d.category_id = c.id
              WHERE d.id = :id LIMIT 1"
         );
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetch();
     }
-
-    /**
-     * Cari dokumen aktif berdasarkan judul atau nama kategori.
-     */
-    public function search(string $keyword): array
-    {
-        $stmt = $this->db->prepare(
-            "SELECT d.*, u.nama AS nama_uploader
-             FROM documents d
-             LEFT JOIN users u ON d.uploaded_by = u.id
-             WHERE d.deleted_at IS NULL
-               AND (d.judul LIKE :k1 OR d.deskripsi LIKE :k2)
-             ORDER BY COALESCE(d.tanggal_transaksi, d.created_at) DESC"
-        );
-        $searchKeyword = '%' . $keyword . '%';
-        $stmt->bindValue(':k1', $searchKeyword, PDO::PARAM_STR);
-        $stmt->bindValue(':k2', $searchKeyword, PDO::PARAM_STR);
-        $stmt->execute();
-        return $stmt->fetchAll();
-    }
-
-
 
     /**
      * Ambil dokumen berdasarkan array ID.

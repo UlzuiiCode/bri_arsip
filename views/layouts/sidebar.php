@@ -90,6 +90,7 @@ function isGroupActive(array $pages, string $currentPage): bool {
                 </a>
             </li>
 
+            <?php if (($_SESSION['user_role'] ?? '') === 'admin'): ?>
             <?php
                 if (!class_exists('DocumentModel')) {
                     require_once BASE_PATH . '/models/DocumentModel.php';
@@ -107,6 +108,16 @@ function isGroupActive(array $pages, string $currentPage): bool {
                         <?= $sidebarTrashCount ?>
                     </span>
                     <?php endif; ?>
+                </a>
+            </li>
+            <?php endif; ?>
+
+            <li>
+                <a href="<?= BASE_URL ?>/index.php?page=activity_logs.my"
+                   id="nav-my-activity"
+                   class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150 <?= isActive('activity_logs.my', $currentPage) ?>">
+                    <i data-feather="clock" class="h-4 w-4 flex-shrink-0"></i>
+                    <span>Riwayat Saya</span>
                 </a>
             </li>
 

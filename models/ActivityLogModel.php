@@ -65,6 +65,22 @@ class ActivityLogModel
     }
 
     /**
+     * Ambil log berdasarkan user tertentu dengan pagination.
+     */
+    public function getByUserPaginated(int $userId, int $limit = 25, int $offset = 0): array
+    {
+        $stmt = $this->db->prepare(
+            "SELECT * FROM activity_logs WHERE user_id = :user_id
+             ORDER BY created_at DESC LIMIT :limit OFFSET :offset"
+        );
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    /**
      * Hitung total log.
      */
     public function countAll(): int
@@ -80,18 +96,5 @@ class ActivityLogModel
         $stmt = $this->db->prepare("SELECT COUNT(*) FROM activity_logs WHERE user_id = :user_id");
         $stmt->execute([':user_id' => $userId]);
         return (int) $stmt->fetchColumn();
-    }
-
-    /**
-     * Hapus log yang lebih lama dari X hari.
-     */
-    public function purgeBefore(int $days = 90): int
-    {
-        $stmt = $this->db->prepare(
-            "DELETE FROM activity_logs WHERE created_at < DATE_SUB(NOW(), INTERVAL :days DAY)"
-        );
-        $stmt->bindValue(':days', $days, PDO::PARAM_INT);
-        $stmt->execute();
-        return $stmt->rowCount();
     }
 }

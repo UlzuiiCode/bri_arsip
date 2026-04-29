@@ -1,93 +1,154 @@
 # Data Flow Diagram (DFD) - SiMArsip
 
-Dokumen ini menjelaskan aliran data dalam Sistem Informasi Manajemen Arsip (SiMArsip).
+Dokumen ini menjelaskan aliran data dalam Sistem Informasi Manajemen Arsip.
+
+---
 
 ## DFD Level 0 (Context Diagram)
-
-DFD Level 0 atau Diagram Konteks memberikan gambaran besar interaksi sistem dengan entitas luar.
 
 ```mermaid
 graph TD
     %% Entities
     P[Pegawai]
     A[Administrator]
-
+    
     %% System
-    S((0.0 <br/> Sistem Informasi <br/> Manajemen Arsip))
-
-    %% Data Flows - Pegawai
-    P -->|Data Login| S
-    P -->|Data Dokumen| S
-    P -->|Request Download/Export| S
-    S -->|Info Login Status| P
-    S -->|Daftar/Preview Dokumen| P
-    S -->|File Dokumen / CSV| P
-
-    %% Data Flows - Admin
-    A -->|Konfirmasi Pendaftaran| S
-    A -->|Manajemen User| S
-    S -->|Log Aktivitas| A
-    S -->|Laporan Data User| A
+    S(("0.0<br>Sistem Informasi<br>Manajemen Arsip"))
+    
+    %% Flows Pegawai
+    P -->|"Data Login, Data Dokumen"| S
+    S -->|"Status Login, Daftar/File Dokumen"| P
+    
+    %% Flows Admin
+    A -->|"Data Login, Kelola Dokumen, Kelola User"| S
+    S -->|"Status Login, Daftar Dokumen, Log Aktivitas"| A
 ```
 
 ---
 
 ## DFD Level 1
 
-DFD Level 1 merinci proses utama yang terjadi di dalam sistem dan interaksinya dengan penyimpanan data (Data Store).
+Mengikuti struktur asli web aplikasi SiMArsip, terdapat 6 proses utama dan 4 Data Store (`users`, `documents`, `categories`, `activity_logs`). Berikut adalah DFD Level 1 yang lebih akurat:
 
 ```mermaid
-graph TD
-    %% Entities
-    PE[Pegawai]
-    AD[Administrator]
+graph LR
+    %% Entities (Kiri)
+    P["Pengguna<br>(Admin & Pegawai)"]
 
-    %% Processes
-    P1((1.0 <br/> Autentikasi))
-    P2((2.0 <br/> Manajemen <br/> Dokumen))
-    P3((3.0 <br/> Manajemen <br/> Trash))
-    P4((4.0 <br/> Manajemen <br/> User))
-    P5((5.0 <br/> Logging & <br/> Pelaporan))
+    %% Processes (Tengah)
+    P1(("1.0<br>Autentikasi"))
+    P2(("2.0<br>Dashboard"))
+    P3(("3.0<br>Manajemen<br>Dokumen"))
+    P4(("4.0<br>Manajemen<br>Sampah"))
+    P5(("5.0<br>Manajemen<br>User"))
+    P6(("6.0<br>Log Aktivitas"))
 
-    %% Data Stores
-    D1[(D1: Users)]
-    D2[(D2: Documents)]
-    D3[(D3: Activity Logs)]
+    %% Data Stores (Kanan)
+    D1[(D1: Data Users)]
+    D2[(D2: Data Documents)]
+    D3[(D3: Data Categories)]
+    D4[(D4: Log Aktivitas)]
 
-    %% Process 1.0: Autentikasi
-    PE -->|Cek Kredensial| P1
-    AD -->|Cek Kredensial| P1
-    P1 <-->|Data User| D1
-    P1 -->|Status Login| PE
-    P1 -->|Status Login| AD
+    %% 1.0 Autentikasi
+    P <-->|"Data Login / Status"| P1
+    P1 <-->|"Cek User"| D1
+    P1 -->|"Catat Login"| D4
 
-    %% Process 2.0: Manajemen Dokumen
-    PE -->|Upload/Edit Dokumen| P2
-    P2 <-->|Simpan/Ambil Dokumen| D2
-    P2 -->|Log Upload/Update| P5
-    P2 -->|File/Daftar Dokumen| PE
+    %% 2.0 Dashboard
+    P <-->|"Request / Tampilan Statistik"| P2
+    D2 -->|"Hitung Total & Kategori"| P2
+    D1 -->|"Hitung User"| P2
 
-    %% Process 3.0: Manajemen Trash (Soft Delete)
-    PE -->|Hapus/Restore Dokumen| P3
-    P3 <-->|Update Status deleted_at| D2
-    P3 -->|Log Hapus/Restore| P5
+    %% 3.0 Manajemen Dokumen
+    P <-->|"Upload, Edit, Hapus (Soft) / File"| P3
+    D3 -->|"Daftar Kategori"| P3
+    P3 <-->|"Simpan / Ambil Dokumen"| D2
+    P3 -->|"Catat Aktivitas Dokumen"| D4
 
-    %% Process 4.0: Manajemen User
-    AD -->|Approve/Hapus User| P4
-    P4 <-->|Update Status Approval| D1
-    P4 -->|Log Manajemen User| P5
+    %% 4.0 Manajemen Sampah (Khusus Admin)
+    P <-->|"Restore, Hapus Permanen / Status"| P4
+    P4 <-->|"Update / Hapus"| D2
+    P4 -->|"Catat Aktivitas Sampah"| D4
 
-    %% Process 5.0: Logging & Pelaporan
-    P5 -->|Simpan Log| D3
-    D3 -->|Ambil Data Log| P5
-    D2 -->|Ambil Data Export| P5
-    P5 -->|Log Aktivitas| AD
-    P5 -->|Export CSV| PE
+    %% 5.0 Manajemen User (Khusus Admin)
+    P <-->|"Approve, Reject / Status User"| P5
+    P5 <-->|"Update Data"| D1
+    P5 -->|"Catat Aktivitas User"| D4
+
+    %% 6.0 Log Aktivitas (Riwayat Saya / Semua)
+    P <-->|"Request / Tampilan Riwayat"| P6
+    D4 -->|"Ambil Data Log"| P6
 ```
 
-## Penjelasan Singkat
+### PlantUML: DFD Level 1
 
-1.  **D1: Users**: Menyimpan data akun pegawai, termasuk status approval oleh admin.
-2.  **D2: Documents**: Menyimpan metadata dokumen (judul, deskripsi, nominal, dll) dan path file fisik.
-3.  **D3: Activity Logs**: Mencatat setiap aksi penting (Login, Upload, Edit, Delete) untuk keperluan audit.
-4.  **Soft Delete**: Proses hapus dokumen (P3) tidak langsung menghapus dari database, melainkan memperbarui kolom `deleted_at`.
+```plantuml
+@startuml
+title DFD Level 1 - SiMArsip (Sesuai Web App)
+
+skinparam rectangle {
+    BackgroundColor White
+    BorderColor Black
+    RoundCorner 10
+}
+skinparam usecase {
+    BackgroundColor White
+    BorderColor Black
+}
+skinparam database {
+    BackgroundColor White
+    BorderColor Black
+}
+
+rectangle "Pengguna\n(Admin & Pegawai)" as P
+
+usecase "1.0\nAutentikasi" as P1
+usecase "2.0\nDashboard" as P2
+usecase "3.0\nManajemen\nDokumen" as P3
+usecase "4.0\nManajemen\nSampah" as P4
+usecase "5.0\nManajemen\nUser" as P5
+usecase "6.0\nLog Aktivitas" as P6
+
+database "D1: Data Users" as D1
+database "D2: Data Documents" as D2
+database "D3: Data Categories" as D3
+database "D4: Log Aktivitas" as D4
+
+' 1.0
+P -down-> P1 : Data Login
+P1 -up-> P : Status
+P1 <-right-> D1 : Cek User
+P1 -right-> D4 : Catat Login
+
+' 2.0
+P -down-> P2 : Request
+P2 -up-> P : Statistik
+D2 -up-> P2 : Hitung Total
+D1 -up-> P2 : Hitung User
+
+' 3.0
+P -down-> P3 : Upload/Edit/Hapus
+P3 -up-> P : File
+D3 -up-> P3 : Daftar Kategori
+P3 <-right-> D2 : Simpan/Ambil Dokumen
+P3 -right-> D4 : Catat Aktivitas
+
+' 4.0
+P -down-> P4 : Restore/Hapus Permanen
+P4 -up-> P : Status
+P4 <-right-> D2 : Update/Hapus
+P4 -right-> D4 : Catat Aktivitas
+
+' 5.0
+P -down-> P5 : Approve/Reject
+P5 -up-> P : Status
+P5 <-right-> D1 : Update Data
+P5 -right-> D4 : Catat Aktivitas
+
+' 6.0
+P -down-> P6 : Request
+P6 -up-> P : Riwayat
+D4 -up-> P6 : Ambil Data Log
+
+@enduml
+```

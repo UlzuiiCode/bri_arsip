@@ -243,6 +243,12 @@ class DocumentController
      */
     public function trash(): void
     {
+        if (($_SESSION['user_role'] ?? '') !== 'admin') {
+            $_SESSION['flash_error'] = 'Akses ditolak. Hanya admin yang dapat mengakses tempat sampah.';
+            header('Location: ' . BASE_URL . '/index.php?page=dashboard');
+            exit;
+        }
+
         $trashedDocuments = $this->docModel->getTrashed();
         require_once BASE_PATH . '/views/documents/trash.php';
     }
@@ -252,6 +258,12 @@ class DocumentController
      */
     public function restore(int $id): void
     {
+        if (($_SESSION['user_role'] ?? '') !== 'admin') {
+            $_SESSION['flash_error'] = 'Akses ditolak. Hanya admin yang dapat memulihkan dokumen.';
+            header('Location: ' . BASE_URL . '/index.php?page=dashboard');
+            exit;
+        }
+
         $document = $this->docModel->findById($id);
         if ($document && $document['deleted_at'] !== null) {
             $this->docModel->restore($id);
@@ -271,6 +283,12 @@ class DocumentController
      */
     public function forceDelete(int $id): void
     {
+        if (($_SESSION['user_role'] ?? '') !== 'admin') {
+            $_SESSION['flash_error'] = 'Akses ditolak. Hanya admin yang dapat menghapus permanen dokumen.';
+            header('Location: ' . BASE_URL . '/index.php?page=dashboard');
+            exit;
+        }
+
         $document = $this->docModel->findById($id);
         if ($document) {
             // Hapus file fisik
@@ -299,6 +317,12 @@ class DocumentController
      */
     public function emptyTrash(): void
     {
+        if (($_SESSION['user_role'] ?? '') !== 'admin') {
+            $_SESSION['flash_error'] = 'Akses ditolak. Hanya admin yang dapat mengosongkan tempat sampah.';
+            header('Location: ' . BASE_URL . '/index.php?page=dashboard');
+            exit;
+        }
+
         $trashed = $this->docModel->getTrashed();
         if (!empty($trashed)) {
             $count = 0;

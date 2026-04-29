@@ -19,7 +19,6 @@ CREATE TABLE IF NOT EXISTS users (
     id          INT UNSIGNED    NOT NULL AUTO_INCREMENT,
     nama        VARCHAR(150)    NOT NULL,
     email       VARCHAR(255)    NOT NULL,
-    foto_profil VARCHAR(255)        NULL          COMMENT 'Nama file foto (unik)',
     password    VARCHAR(255)    NOT NULL          COMMENT 'Bcrypt hash',
     role        ENUM('admin', 'pegawai')
                                 NOT NULL DEFAULT 'pegawai',
